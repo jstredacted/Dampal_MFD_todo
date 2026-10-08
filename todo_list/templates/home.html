@@ -1,6 +1,42 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Welcome to the homepage!</h1>
-    <p>Today is {{ date_today }}</p>
+    <h1>To-do list</h1>
+    <p class="intro">Keep track of what needs doing, one task at a time.</p>
+
+    <form class="add-form" method="post" action="{% url 'add_task' %}">
+        {% csrf_token %}
+        <label for="{{ form.text.id_for_label }}">{{ form.text.label }}</label>
+        <div class="add-controls">
+            {{ form.text }}
+            <button class="primary" type="submit">Add task</button>
+        </div>
+        {{ form.text.errors }}
+    </form>
+
+    <h2>Your tasks</h2>
+    <ul class="tasks">
+        {% for task in tasks %}
+            <li class="task{% if task.completed %} completed{% endif %}">
+                <div class="task-content">
+                    <span class="task-text">{{ task.text }}</span>
+                    <span class="task-status">{% if task.completed %}Completed{% else %}Pending{% endif %}</span>
+                </div>
+                <div class="task-actions">
+                    <form method="post" action="{% url 'toggle_task' task.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" aria-label="{% if task.completed %}Reopen{% else %}Complete{% endif %} task: {{ task.text }}">
+                            {% if task.completed %}Reopen{% else %}Complete{% endif %}
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'delete_task' task.pk %}">
+                        {% csrf_token %}
+                        <button class="delete" type="submit" aria-label="Delete task: {{ task.text }}">Delete</button>
+                    </form>
+                </div>
+            </li>
+        {% empty %}
+            <li class="empty-state">No tasks yet. Add your first task above.</li>
+        {% endfor %}
+    </ul>
 {% endblock %}
